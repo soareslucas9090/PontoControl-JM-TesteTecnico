@@ -1,6 +1,14 @@
+import datetime
+
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    Group,
+    Permission,
+    PermissionsMixin,
+)
 from django.db import models
 from django.utils.timezone import now
-import datetime
 
 
 class Empresa(models.Model):
@@ -9,6 +17,81 @@ class Empresa(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+class UserManager(BaseUserManager):
+    def create_user(
+        self,
+        cpf,
+        password=None,
+        **extra_fields,
+    ):
+        if not cpf:
+            raise ValueError("O Usuário precisa ter um CPF válido")
+        if cpf.isnumeric() or len(cpf) != 11:
+            raise ValueError("O CPF precisa ter 11 dígitos numéricos")
+
+        if extra_fields.get("is_superuser") is True:
+            extra_fields["is_staff"] = True
+
+        user = self.model(
+            cpf=cpf,
+            **extra_fields,
+        )
+
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(
+        self,
+        cpf,
+        password=None,
+        **extra_fields,
+    ):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+
+        user = self.create_user(
+            cpf=cpf,
+            password=password,
+            **extra_fields,
+        )
+
+        permissions = Permission.objects.all()
+        user.user_permissions.set(permissions)
+
+        return user
+
+
+class Usuario(AbstractBaseUser, PermissionsMixin):
+    cpf = models.CharField(max_length=11, unique=True)
+    funcionario = models.ForeignKey(
+        "Funcionario", on_delete=models.CASCADE, related_name="usuarios", null=True
+    )
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False, verbose_name="É super usuário")
+    is_active = models.BooleanField(default=True)
+
+    groups = models.ManyToManyField(
+        Group,
+        related_name="custom_user_groups",
+        verbose_name=("Grupos"),
+        blank=True,
+    )
+    user_permissions = models.ManyToManyField(
+        Permission,
+        related_name="custom_user_permissions",
+        verbose_name=("Permissões"),
+        blank=True,
+    )
+
+    USERNAME_FIELD = "cpf"
+
+    objects = UserManager()
+
+    def __str__(self):
+        return self.cpf
 
 
 class Funcionario(models.Model):
