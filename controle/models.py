@@ -28,11 +28,16 @@ class UserManager(BaseUserManager):
     ):
         if not cpf:
             raise ValueError("O Usuário precisa ter um CPF válido")
-        if cpf.isnumeric() or len(cpf) != 11:
-            raise ValueError("O CPF precisa ter 11 dígitos numéricos")
+        if not cpf.isnumeric() or len(cpf) != 11:
+            raise ValueError(f"O CPF precisa ter 11 dígitos numéricos")
 
-        if extra_fields.get("is_superuser") is True:
+        if extra_fields.get("is_superuser", False) is True:
             extra_fields["is_staff"] = True
+        else:
+            if not extra_fields.get("empresa", None):
+                raise ValueError(
+                    f"Funcionários precisam estar associados a uma empresa"
+                )
 
         user = self.model(
             cpf=cpf,

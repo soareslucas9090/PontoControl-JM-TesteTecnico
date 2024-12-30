@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="col-12 col-md-8 col-lg-4 mt-5">
+    <h1>Criar Empresa</h1>
+
+    {% if form.errors %}
+      <div class="alert alert-danger" role="alert">{{ form.errors }}</div>
+    {% endif %}
+
+    <form id="form" method="post" action="#">
+      {% csrf_token %}
+      {% load custom_tags %}
+      <div class="form-group mt-3">
+        <label for="id_nome">{{ form.nome.label }}</label>
+        {{ form.nome|add_class:'form-control' }}
+      </div>
+      <div class="form-group mt-3">
+        <label for="id_endereco">{{ form.endereco.label }}</label>
+        {{ form.endereco|add_class:'form-control' }}
+      </div>
+      <button type="submit" class="btn btn-primary btn-block mt-3">Salvar</button>
+    </form>
+  </div>
+{% endblock %}

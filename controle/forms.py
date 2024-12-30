@@ -17,3 +17,8 @@ class LoginForm(forms.Form):
             raise ValidationError("O CPF deve conter 11 dígitos")
 
         return cpf
+
+
+class EmpresaForm(forms.Form):
+    nome = forms.CharField(widget=forms.TextInput(), label="Nome")
+    endereco = forms.CharField(widget=forms.TextInput(), label="Endereço")
