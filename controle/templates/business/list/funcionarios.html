@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="col">
+    <a class="btn btn-primary novo-elemento" href="{% url 'criar-empresa' %}" role="button">Criar Novo Funcionário</a>
+    <h1>Funcionários de {{ empresa }}</h1>
+    <div>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Email</th>
+            <th class="col-acoes">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for funcionario in funcionarios %}
+            <tr>
+              <td>{{ funcionario.nome }}</td>
+              <td>{{ funcionario.email }}</td>
+              <td>
+                <a class="btn btn-secondary ml-3 mr-3 mb-3" href="#" role="button">Pontos</a>
+              </td>
+            </tr>
+            <a class="btn btn-secondary ml-3 mr-3 mb-3" href="#" role="button">{{ empresa.nome }}</a>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

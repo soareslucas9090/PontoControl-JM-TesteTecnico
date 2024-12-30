@@ -2,10 +2,12 @@ from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views import View
+from django.urls import reverse
+from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .forms import LoginForm, EmpresaForm
-from .models import Empresa
+from .models import Empresa, Funcionario
 from django.http import HttpResponseForbidden
 
 
@@ -38,7 +40,7 @@ class LoginView(View):
             else:
                 login(request, user)
 
-                return redirect("/menu/")
+                return redirect(reverse("menu"))
 
             return render(
                 request=request,
@@ -91,7 +93,7 @@ class CriarEmpresaView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         return render(
             request=request,
-            template_name="business/empresas.html",
+            template_name="business/create/empresas.html",
             context={"form": form},
         )
 
@@ -115,13 +117,47 @@ class CriarEmpresaView(LoginRequiredMixin, UserPassesTestMixin, View):
 
                 return render(
                     request=request,
-                    template_name="business/empresas.html",
+                    template_name="business/create/empresas.html",
                     context={"form": form},
                 )
 
         else:
             return render(
                 request=request,
-                template_name="business/empresas.html",
+                template_name="business/create/empresas.html",
                 context={"form": form},
             )
+
+
+class ListarFuncionáriosView(LoginRequiredMixin, UserPassesTestMixin, View):
+    redirect_field_name = "next"
+
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden("Você não tem permissão para acessar esta página.")
+
+    def get(self, request):
+        empresa_id = request.GET.get("empresa", None)
+
+        if not empresa_id:
+            messages.error(
+                request,
+                "É preciso acessar esta página a partir do menu, selecionando uma empresa!",
+            )
+            return redirect(reverse("menu"))
+        else:
+            try:
+                empresa = Empresa.objects.get(pk=empresa_id)
+            except Empresa.DoesNotExist:
+                messages.error(request, "Empresa não encontrada!")
+                return redirect(reverse("menu"))
+
+        funcionarios = Funcionario.objects.filter(empresa=empresa)
+
+        return render(
+            request=request,
+            template_name="business/list/funcionarios.html",
+            context={"funcionarios": funcionarios, "empresa": empresa.nome},
+        )
