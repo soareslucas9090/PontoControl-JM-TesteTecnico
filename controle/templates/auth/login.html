@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="col-12 col-md-8 col-lg-4 full-height vertical-center">
+    <div class="card shadow-lg login-card">
+      <div class="card-body">
+        <h3 class="card-title text-center">Login</h3>
+
+        {% if form.errors %}
+          <div class="alert alert-danger" role="alert">Usuário e/ou senha inválidos. Tente novamente</div>
+        {% endif %}
+
+        <form id="form" method="post" action="#">
+          {% csrf_token %}
+          {% load custom_tags %}
+          <div class="form-group mt-3">
+            <label for="id_cpf">{{ form.cpf.label }}</label>
+            {{ form.cpf|add_class:'form-control' }}
+          </div>
+          <div class="form-group mt-3">
+            <label for="id_password">{{ form.password.label }}</label>
+            {{ form.password|add_class:'form-control' }}
+          </div>
+          <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-primary btn-block">Login</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    var mascaraCPF = IMask(document.getElementById('id_cpf'), {
+      mask: '000.000.000-00'
+    })
+  </script>
+{% endblock %}
