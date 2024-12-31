@@ -7,9 +7,10 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
+from django.utils.timezone import now
 
-from .forms import EmpresaForm, FuncionarioForm, LoginForm
-from .models import Empresa, Funcionario, Usuario
+from .forms import EmpresaForm, FuncionarioForm, LoginForm, PontoForm
+from .models import Empresa, Funcionario, Usuario, Ponto
 
 
 @method_decorator(csrf_protect, name="dispatch")
@@ -151,6 +152,7 @@ class ListarFuncionáriosView(LoginRequiredMixin, UserPassesTestMixin, View):
         else:
             try:
                 empresa = Empresa.objects.get(pk=empresa_id)
+                request.session["empresa_id"] = empresa_id
             except Empresa.DoesNotExist:
                 messages.error(request, "Empresa não encontrada!")
                 return redirect(reverse("menu"))
@@ -228,5 +230,107 @@ class CriarFuncionárioView(LoginRequiredMixin, UserPassesTestMixin, View):
             return render(
                 request=request,
                 template_name="business/create/funcionarios.html",
+                context={"empresa": empresa, "form": form},
+            )
+
+
+class RegistrarPontoView(LoginRequiredMixin, UserPassesTestMixin, View):
+    redirect_field_name = "next"
+
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden("Você não tem permissão para acessar esta página.")
+
+    def get(self, request):
+        form = PontoForm()
+
+        empresa_id = request.session.get("empresa_id", None)
+
+        if not empresa_id:
+            messages.error(
+                request,
+                "É preciso acessar esta página a partir do menu, selecionando uma empresa!",
+            )
+            return redirect(reverse("menu"))
+        else:
+            try:
+                empresa = Empresa.objects.get(pk=empresa_id)
+            except Empresa.DoesNotExist:
+                messages.error(request, "Empresa não encontrada!")
+                return redirect(reverse("menu"))
+
+        return render(
+            request=request,
+            template_name="business/main/registro_ponto.html",
+            context={"empresa": empresa, "form": form},
+        )
+
+    def post(self, request):
+        form = PontoForm(request.POST)
+
+        empresa_id = request.session.get("empresa_id", None)
+        empresa = Empresa.objects.get(pk=empresa_id)
+
+        if form.is_valid():
+            cpf = form.cleaned_data["CPF"]
+
+            funcionario = Usuario.objects.filter(cpf=cpf, funcionario__empresa=empresa)
+
+            if funcionario:
+                funcionario = funcionario.first().funcionario
+
+                try:
+                    ponto_existente = Ponto.objects.get(
+                        funcionario=funcionario, saida=None
+                    )
+
+                    ponto_existente.saida = now().time()
+
+                    ponto_existente.save()
+
+                    horas = ponto_existente.horas_trabalhadas()["horas_trabalhadas"]
+
+                    return render(
+                        request=request,
+                        template_name="business/main/registro_ponto.html",
+                        context={
+                            "empresa": empresa,
+                            "form": form,
+                            "status": "Ponto Fechado",
+                            "horas_trabalhadas": horas,
+                        },
+                    )
+                except Ponto.DoesNotExist:
+                    Ponto.objects.create(funcionario=funcionario)
+                    form.errors.clear()
+
+                    return render(
+                        request=request,
+                        template_name="business/main/registro_ponto.html",
+                        context={
+                            "empresa": empresa,
+                            "form": form,
+                            "status": "Ponto Aberto",
+                        },
+                    )
+            else:
+                form.errors.clear()
+                form.add_error(
+                    "CPF",
+                    "Funcionário não encontrado, tente novamente.",
+                )
+
+                return render(
+                    request=request,
+                    template_name="business/main/registro_ponto.html",
+                    context={"empresa": empresa, "form": form},
+                )
+
+        else:
+            return render(
+                request=request,
+                template_name="business/main/registro_ponto.html",
                 context={"empresa": empresa, "form": form},
             )

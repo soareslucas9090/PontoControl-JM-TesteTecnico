@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="col">
+    <h1>Controle de Ponto: {{ empresa.nome }}</h1>
+
+    {% if form.errors %}
+      <div class="alert alert-danger" role="alert">{{ form.errors }}</div>
+    {% endif %}
+
+    {% if status %}
+      <div class="alert alert-success">
+        <p>Ponto Registrado com Sucesso!</p>
+        {% if status == 'Ponto Fechado' %}
+          <p>
+            Horas Trabalhadas:<br />{{ horas_trabalhadas }}
+          </p>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <form id="form" method="post" action="#">
+      {% csrf_token %}
+      {% load custom_tags %}
+      <div class="form-group mt-3" style="width: 500px;">
+        <label for="id_CPF">{{ form.CPF.label }}</label>
+        {{ form.CPF|add_class:'form-control' }}
+      </div>
+      <button type="submit" class="btn btn-primary btn-block mt-3">Salvar</button>
+    </form>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    var mascaraCPF = IMask(document.getElementById('id_CPF'), {
+      mask: '000.000.000-00'
+    })
+  </script>
+{% endblock %}

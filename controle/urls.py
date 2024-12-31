@@ -4,6 +4,7 @@ from .views import (
     CriarEmpresaView,
     CriarFuncionárioView,
     ListarFuncionáriosView,
+    RegistrarPontoView,
     LoginView,
     MenuView,
 )
@@ -17,5 +18,10 @@ urlpatterns = [
         "criar/funcionarios/",
         CriarFuncionárioView.as_view(),
         name="criar-funcionarios",
+    ),
+    path(
+        "ponto/",
+        RegistrarPontoView.as_view(),
+        name="registrar-pontos",
     ),
 ]

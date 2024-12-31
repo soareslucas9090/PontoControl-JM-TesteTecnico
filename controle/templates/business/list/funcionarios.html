@@ -12,6 +12,7 @@
   <div class="col">
     <a class="btn btn-primary novo-elemento" href="{% url 'criar-funcionarios' %}?empresa={{ empresa.id }}" role="button">Criar Novo Funcionário</a>
     <h1>Funcionários de {{ empresa.nome }}</h1>
+    <a class="btn btn-primary" href="{% url 'registrar-pontos' %}" role="button">Registro de Ponto</a>
     <div>
       <table class="table table-bordered mt-3">
         <thead>

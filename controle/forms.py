@@ -47,3 +47,17 @@ class FuncionarioForm(forms.Form):
             raise ValidationError("A senha deve conter no mínimo 8 caracteres")
 
         return senha
+
+
+class PontoForm(forms.Form):
+    CPF = forms.CharField(widget=forms.TextInput(), label="CPF")
+
+    def clean_CPF(self):
+        cpf = str(self.cleaned_data.get("CPF"))
+
+        cpf = re.sub("[^0-9]", "", cpf)
+
+        if len(cpf) != 11 or not cpf.isnumeric():
+            raise ValidationError("O CPF deve conter 11 dígitos numéricos")
+
+        return cpf

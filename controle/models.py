@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -104,7 +104,7 @@ class Funcionario(models.Model):
         Empresa, on_delete=models.CASCADE, related_name="funcionarios"
     )
 
-    def criar_usuario(self, cpf, senha):
+    def criar_usuario(self, cpf: str, senha: str) -> Usuario:
         usuario = Usuario.objects.create_user(
             cpf=cpf,
             password=senha,
@@ -121,19 +121,23 @@ class Ponto(models.Model):
         Funcionario, on_delete=models.CASCADE, related_name="pontos"
     )
     data = models.DateField(default=now)
-    entrada = models.TimeField()
+    entrada = models.TimeField(default=now)
     saida = models.TimeField(null=True)
 
-    def horas_trabalhadas(self) -> dict[str, str | datetime.timedelta]:
-        delta = None
+    def horas_trabalhadas(self) -> dict[str, str | datetime]:
         entrada_datetime = datetime.combine(self.data, self.entrada)
 
         if self.saida:
             saida_datetime = datetime.combine(self.data, self.saida)
             delta = saida_datetime - entrada_datetime
 
-        if delta:
-            return {"status": "Ponto Fechado", "horas_trabalhadas": delta}
+            horas, resto = divmod(delta.total_seconds(), 3600)
+            minutos = resto // 60
+
+            return {
+                "status": "Ponto Fechado",
+                "horas_trabalhadas": f"{horas} horas e {minutos} minutos.",
+            }
         else:
             horas_corridas = datetime.now() - entrada_datetime
             return {"status": "Ponto Aberto", "horas_corridas": horas_corridas}
