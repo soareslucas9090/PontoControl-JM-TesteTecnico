@@ -10,7 +10,7 @@
     {% endfor %}
   {% endif %}
   <div class="col">
-    <a class="btn btn-primary novo-elemento" href="{% url 'criar-funcionarios' %}?empresa={{ empresa.id }}" role="button">Criar Novo Funcionário</a>
+    <a class="btn btn-primary novo-elemento" href="{% url 'criar-funcionarios' %}" role="button">Criar Novo Funcionário</a>
     <h1>Funcionários de {{ empresa.nome }}</h1>
     <a class="btn btn-primary" href="{% url 'registrar-pontos' %}" role="button">Registro de Ponto</a>
     <div>

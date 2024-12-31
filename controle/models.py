@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from django.db.utils import IntegrityError
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -104,12 +104,16 @@ class Funcionario(models.Model):
         Empresa, on_delete=models.CASCADE, related_name="funcionarios"
     )
 
-    def criar_usuario(self, cpf: str, senha: str) -> Usuario:
-        usuario = Usuario.objects.create_user(
-            cpf=cpf,
-            password=senha,
-            funcionario=self,
-        )
+    def criar_usuario(self, cpf: str, senha: str) -> Usuario | str:
+        try:
+            usuario = Usuario.objects.create_user(
+                cpf=cpf,
+                password=senha,
+                funcionario=self,
+            )
+        except IntegrityError:
+            usuario = Usuario.objects.get(cpf=cpf)
+            return f"Já existe um funcionário registrado com este CPF na empresa {usuario.funcionario.empresa}"
         return usuario
 
     def __str__(self):

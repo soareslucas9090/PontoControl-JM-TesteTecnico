@@ -8,7 +8,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
 from django.utils.timezone import now
-
+from django.db.utils import IntegrityError
 from .forms import EmpresaForm, FuncionarioForm, LoginForm, PontoForm
 from .models import Empresa, Funcionario, Usuario, Ponto
 
@@ -178,7 +178,7 @@ class CriarFuncionárioView(LoginRequiredMixin, UserPassesTestMixin, View):
     def get(self, request):
         form = FuncionarioForm()
 
-        empresa_id = request.GET.get("empresa", None)
+        empresa_id = request.session.get("empresa_id", None)
 
         if not empresa_id:
             messages.error(
@@ -202,7 +202,7 @@ class CriarFuncionárioView(LoginRequiredMixin, UserPassesTestMixin, View):
     def post(self, request):
         form = FuncionarioForm(request.POST)
 
-        empresa_id = request.GET.get("empresa", None)
+        empresa_id = request.session.get("empresa_id", None)
         empresa = Empresa.objects.get(pk=empresa_id)
 
         if form.is_valid():
@@ -211,13 +211,44 @@ class CriarFuncionárioView(LoginRequiredMixin, UserPassesTestMixin, View):
             email = form.cleaned_data["email"]
             senha = form.cleaned_data["senha"]
 
-            funcionario = Funcionario.objects.create(
-                nome=nome,
-                email=email,
-                empresa=empresa,
-            )
+            try:
+                Funcionario.objects.get(email=email)
 
-            usuario = funcionario.criar_usuario(cpf, senha)
+                form.errors.clear()
+                form.add_error(
+                    "email",
+                    "Já há um email registrado com este nome e domínio.",
+                )
+
+                return render(
+                    request=request,
+                    template_name="business/create/funcionarios.html",
+                    context={"empresa": empresa, "form": form},
+                )
+            except Funcionario.DoesNotExist:
+                try:
+                    usuario = Usuario.objects.get(cpf=cpf)
+
+                    form.errors.clear()
+                    form.add_error(
+                        "cpf",
+                        f"Já existe um funcionário registrado com este CPF na empresa {usuario.funcionario.empresa}",
+                    )
+
+                    return render(
+                        request=request,
+                        template_name="business/create/funcionarios.html",
+                        context={"empresa": empresa, "form": form},
+                    )
+
+                except:
+                    funcionario = Funcionario.objects.create(
+                        nome=nome,
+                        email=email,
+                        empresa=empresa,
+                    )
+
+                    usuario = funcionario.criar_usuario(cpf, senha)
 
             messages.success(
                 request,
