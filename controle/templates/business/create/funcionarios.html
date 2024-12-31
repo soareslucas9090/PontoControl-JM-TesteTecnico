@@ -3,7 +3,7 @@
 
 {% block content %}
   <div class="col">
-    <h1>Criar Empresa</h1>
+    <h1>Criar Funcionário</h1>
 
     {% if form.errors %}
       <div class="alert alert-danger" role="alert">{{ form.errors }}</div>
@@ -17,10 +17,26 @@
         {{ form.nome|add_class:'form-control' }}
       </div>
       <div class="form-group mt-3" style="width: 500px;">
-        <label for="id_endereco">{{ form.endereco.label }}</label>
-        {{ form.endereco|add_class:'form-control' }}
+        <label for="id_cpf">{{ form.cpf.label }}</label>
+        {{ form.cpf|add_class:'form-control' }}
+      </div>
+      <div class="form-group mt-3" style="width: 500px;">
+        <label for="id_email">{{ form.email.label }}</label>
+        {{ form.email|add_class:'form-control' }}
+      </div>
+      <div class="form-group mt-3" style="width: 500px;">
+        <label for="id_senha">{{ form.senha.label }}</label>
+        {{ form.senha|add_class:'form-control' }}
       </div>
       <button type="submit" class="btn btn-primary btn-block mt-3">Salvar</button>
     </form>
   </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    var mascaraCPF = IMask(document.getElementById('id_cpf'), {
+      mask: '000.000.000-00'
+    })
+  </script>
 {% endblock %}

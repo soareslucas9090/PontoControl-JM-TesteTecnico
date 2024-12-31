@@ -34,10 +34,8 @@ class UserManager(BaseUserManager):
         if extra_fields.get("is_superuser", False) is True:
             extra_fields["is_staff"] = True
         else:
-            if not extra_fields.get("empresa", None):
-                raise ValueError(
-                    f"Funcionários precisam estar associados a uma empresa"
-                )
+            if not extra_fields.get("funcionario", None):
+                raise ValueError(f"Usuarios precisam estar associados a um funcionario")
 
         user = self.model(
             cpf=cpf,
@@ -105,6 +103,14 @@ class Funcionario(models.Model):
     empresa = models.ForeignKey(
         Empresa, on_delete=models.CASCADE, related_name="funcionarios"
     )
+
+    def criar_usuario(self, cpf, senha):
+        usuario = Usuario.objects.create_user(
+            cpf=cpf,
+            password=senha,
+            funcionario=self,
+        )
+        return usuario
 
     def __str__(self):
         return self.nome
