@@ -1,5 +1,5 @@
 from datetime import datetime
-from django.db.utils import IntegrityError
+
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -8,6 +8,7 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.db import models
+from django.db.utils import IntegrityError
 from django.utils.timezone import now
 
 
@@ -144,7 +145,14 @@ class Ponto(models.Model):
             }
         else:
             horas_corridas = datetime.now() - entrada_datetime
-            return {"status": "Ponto Aberto", "horas_corridas": horas_corridas}
+
+            horas, resto = divmod(horas_corridas.total_seconds(), 3600)
+            minutos = resto // 60
+
+            return {
+                "status": "Ponto Aberto",
+                "horas_corridas": f"{horas} horas e {minutos} minutos.",
+            }
 
     def __str__(self):
         return f"Ponto de {self.funcionario.nome} - {self.data}"

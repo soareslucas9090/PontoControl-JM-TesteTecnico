@@ -1,16 +1,27 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.db.utils import IntegrityError
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils.timezone import now
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
-from django.utils.timezone import now
-from django.db.utils import IntegrityError
+
 from .forms import EmpresaForm, FuncionarioForm, LoginForm, PontoForm
-from .models import Empresa, Funcionario, Usuario, Ponto
+from .models import Empresa, Funcionario, Ponto, Usuario
+
+
+class ViewProtegida(LoginRequiredMixin, UserPassesTestMixin):
+    redirect_field_name = "next"
+
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden("Você não tem permissão para acessar esta página.")
 
 
 @method_decorator(csrf_protect, name="dispatch")
@@ -59,15 +70,7 @@ class LoginView(View):
 
 
 @method_decorator(csrf_protect, name="dispatch")
-class MenuView(LoginRequiredMixin, UserPassesTestMixin, View):
-    redirect_field_name = "next"
-
-    def test_func(self):
-        return self.request.user.is_superuser
-
-    def handle_no_permission(self):
-        return HttpResponseForbidden("Você não tem permissão para acessar esta página.")
-
+class MenuView(ViewProtegida, View):
     def get(self, request):
         empresas = Empresa.objects.all()
 
@@ -81,15 +84,7 @@ class MenuView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 
 @method_decorator(csrf_protect, name="dispatch")
-class CriarEmpresaView(LoginRequiredMixin, UserPassesTestMixin, View):
-    redirect_field_name = "next"
-
-    def test_func(self):
-        return self.request.user.is_superuser
-
-    def handle_no_permission(self):
-        return HttpResponseForbidden("Você não tem permissão para acessar esta página.")
-
+class CriarEmpresaView(ViewProtegida, View):
     def get(self, request):
         form = EmpresaForm()
 
@@ -131,15 +126,7 @@ class CriarEmpresaView(LoginRequiredMixin, UserPassesTestMixin, View):
             )
 
 
-class ListarFuncionáriosView(LoginRequiredMixin, UserPassesTestMixin, View):
-    redirect_field_name = "next"
-
-    def test_func(self):
-        return self.request.user.is_superuser
-
-    def handle_no_permission(self):
-        return HttpResponseForbidden("Você não tem permissão para acessar esta página.")
-
+class ListarFuncionáriosView(ViewProtegida, View):
     def get(self, request):
         empresa_id = request.GET.get("empresa", None)
 
@@ -166,15 +153,7 @@ class ListarFuncionáriosView(LoginRequiredMixin, UserPassesTestMixin, View):
         )
 
 
-class CriarFuncionárioView(LoginRequiredMixin, UserPassesTestMixin, View):
-    redirect_field_name = "next"
-
-    def test_func(self):
-        return self.request.user.is_superuser
-
-    def handle_no_permission(self):
-        return HttpResponseForbidden("Você não tem permissão para acessar esta página.")
-
+class CriarFuncionárioView(ViewProtegida, View):
     def get(self, request):
         form = FuncionarioForm()
 
@@ -265,15 +244,7 @@ class CriarFuncionárioView(LoginRequiredMixin, UserPassesTestMixin, View):
             )
 
 
-class RegistrarPontoView(LoginRequiredMixin, UserPassesTestMixin, View):
-    redirect_field_name = "next"
-
-    def test_func(self):
-        return self.request.user.is_superuser
-
-    def handle_no_permission(self):
-        return HttpResponseForbidden("Você não tem permissão para acessar esta página.")
-
+class RegistrarPontoView(ViewProtegida, View):
     def get(self, request):
         form = PontoForm()
 
