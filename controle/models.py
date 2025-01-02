@@ -13,55 +13,83 @@ from django.utils.timezone import now
 
 
 class Empresa(models.Model):
+    """
+    Modelo que representa uma empresa.
+
+    Atributos:
+        nome (str): Nome da empresa.
+        endereco (str): Endereço da empresa.
+    """
+
     nome = models.CharField(max_length=255)
     endereco = models.TextField()
 
     def __str__(self):
+        """
+        Retorna a representação textual da empresa.
+
+        Retorna:
+            str: Nome da empresa.
+        """
         return self.nome
 
 
 class UserManager(BaseUserManager):
-    def create_user(
-        self,
-        cpf,
-        password=None,
-        **extra_fields,
-    ):
+    """
+    Gerenciador de usuários para criação de usuários comuns e superusuários.
+
+    Métodos:
+        create_user: Cria um usuário comum.
+        create_superuser: Cria um superusuário.
+    """
+
+    def create_user(self, cpf, password=None, **extra_fields):
+        """
+        Cria e salva um usuário comum.
+
+        Parâmetros:
+            cpf (str): CPF do usuário.
+            password (str, opcional): Senha do usuário.
+            extra_fields (dict): Campos adicionais para o usuário.
+
+        Retorna:
+            Usuario: Usuário criado.
+
+        Lança:
+            ValueError: Se o CPF for inválido ou se faltarem campos obrigatórios.
+        """
         if not cpf:
             raise ValueError("O Usuário precisa ter um CPF válido")
         if not cpf.isnumeric() or len(cpf) != 11:
-            raise ValueError(f"O CPF precisa ter 11 dígitos numéricos")
+            raise ValueError("O CPF precisa ter 11 dígitos numéricos")
 
-        if extra_fields.get("is_superuser", False) is True:
+        if extra_fields.get("is_superuser", False):
             extra_fields["is_staff"] = True
         else:
             if not extra_fields.get("funcionario", None):
-                raise ValueError(f"Usuarios precisam estar associados a um funcionario")
+                raise ValueError("Usuários precisam estar associados a um funcionário")
 
-        user = self.model(
-            cpf=cpf,
-            **extra_fields,
-        )
-
+        user = self.model(cpf=cpf, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(
-        self,
-        cpf,
-        password=None,
-        **extra_fields,
-    ):
+    def create_superuser(self, cpf, password=None, **extra_fields):
+        """
+        Cria e salva um superusuário.
+
+        Parâmetros:
+            cpf (str): CPF do superusuário.
+            password (str, opcional): Senha do superusuário.
+            extra_fields (dict): Campos adicionais para o superusuário.
+
+        Retorna:
+            Usuario: Superusuário criado.
+        """
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
 
-        user = self.create_user(
-            cpf=cpf,
-            password=password,
-            **extra_fields,
-        )
-
+        user = self.create_user(cpf=cpf, password=password, **extra_fields)
         permissions = Permission.objects.all()
         user.user_permissions.set(permissions)
 
@@ -69,24 +97,37 @@ class UserManager(BaseUserManager):
 
 
 class Usuario(AbstractBaseUser, PermissionsMixin):
+    """
+    Modelo que representa um usuário do sistema.
+
+    Atributos:
+        cpf (str): CPF do usuário.
+        funcionario (Funcionario): Referência ao funcionário associado.
+        is_staff (bool): Indica se o usuário é membro do staff.
+        is_superuser (bool): Indica se o usuário é superusuário.
+        is_active (bool): Indica se o usuário está ativo.
+        groups (Group): Grupos associados ao usuário.
+        user_permissions (Permission): Permissões associadas ao usuário.
+    """
+
     cpf = models.CharField(max_length=11, unique=True)
     funcionario = models.ForeignKey(
         "Funcionario", on_delete=models.CASCADE, related_name="usuarios", null=True
     )
     is_staff = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False, verbose_name="É super usuário")
+    is_superuser = models.BooleanField(default=False, verbose_name="É superusuário")
     is_active = models.BooleanField(default=True)
 
     groups = models.ManyToManyField(
         Group,
         related_name="custom_user_groups",
-        verbose_name=("Grupos"),
+        verbose_name="Grupos",
         blank=True,
     )
     user_permissions = models.ManyToManyField(
         Permission,
         related_name="custom_user_permissions",
-        verbose_name=("Permissões"),
+        verbose_name="Permissões",
         blank=True,
     )
 
@@ -95,10 +136,25 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     def __str__(self):
+        """
+        Retorna a representação textual do usuário.
+
+        Retorna:
+            str: CPF do usuário.
+        """
         return self.cpf
 
 
 class Funcionario(models.Model):
+    """
+    Modelo que representa um funcionário.
+
+    Atributos:
+        nome (str): Nome do funcionário.
+        email (str): Email do funcionário.
+        empresa (Empresa): Referência à empresa associada.
+    """
+
     nome = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     empresa = models.ForeignKey(
@@ -106,11 +162,19 @@ class Funcionario(models.Model):
     )
 
     def criar_usuario(self, cpf: str, senha: str) -> Usuario | str:
+        """
+        Cria um usuário associado ao funcionário.
+
+        Parâmetros:
+            cpf (str): CPF do usuário.
+            senha (str): Senha do usuário.
+
+        Retorna:
+            Usuario | str: Usuário criado ou mensagem de erro.
+        """
         try:
             usuario = Usuario.objects.create_user(
-                cpf=cpf,
-                password=senha,
-                funcionario=self,
+                cpf=cpf, password=senha, funcionario=self
             )
         except IntegrityError:
             usuario = Usuario.objects.get(cpf=cpf)
@@ -118,10 +182,26 @@ class Funcionario(models.Model):
         return usuario
 
     def __str__(self):
+        """
+        Retorna a representação textual do funcionário.
+
+        Retorna:
+            str: Nome do funcionário.
+        """
         return self.nome
 
 
 class Ponto(models.Model):
+    """
+    Modelo que representa um ponto de registro de entrada e saída.
+
+    Atributos:
+        funcionario (Funcionario): Funcionário relacionado ao ponto.
+        data (date): Data do ponto.
+        entrada (time): Horário de entrada.
+        saida (time): Horário de saída.
+    """
+
     funcionario = models.ForeignKey(
         Funcionario, on_delete=models.CASCADE, related_name="pontos"
     )
@@ -130,6 +210,12 @@ class Ponto(models.Model):
     saida = models.TimeField(null=True)
 
     def horas_trabalhadas(self) -> dict[str, str]:
+        """
+        Calcula as horas trabalhadas com base na entrada e saída.
+
+        Retorna:
+            dict[str, str]: Horas e minutos trabalhados.
+        """
         entrada_datetime = datetime.combine(self.data, self.entrada)
 
         if self.saida:
@@ -146,4 +232,10 @@ class Ponto(models.Model):
         }
 
     def __str__(self):
+        """
+        Retorna a representação textual do ponto.
+
+        Retorna:
+            str: Descrição do ponto.
+        """
         return f"Ponto de {self.funcionario.nome} - {self.data}"
