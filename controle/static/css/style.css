@@ -27,7 +27,7 @@ body {
 .novo-elemento {
   position: absolute;
   top: 5%;
-  right: 5%;
+  right: 7%;
 }
 
 .col-acoes {
@@ -44,4 +44,10 @@ body {
   input {
     width: 150px;
   }
+}
+
+.logout {
+  position: absolute;
+  top: 5%;
+  right: 3%;
 }

@@ -7,6 +7,7 @@ from .views import (
     FiltrarPontoComumView,
     ListarFuncionariosView,
     LoginView,
+    LogoutView,
     MenuView,
     RedirectView,
     RegistrarPontoView,
@@ -15,6 +16,7 @@ from .views import (
 urlpatterns = [
     path("", RedirectView.as_view(), name="redirect"),
     path("login/", LoginView.as_view(), name="login"),
+    path("logout/", LogoutView.as_view(), name="logout"),
     path("menu/", MenuView.as_view(), name="menu"),
     path("criar/empresa/", CriarEmpresaView.as_view(), name="criar-empresa"),
     path("funcionarios/", ListarFuncionariosView.as_view(), name="funcionarios"),

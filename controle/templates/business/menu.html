@@ -10,6 +10,7 @@
     {% endfor %}
   {% endif %}
   <div class="col">
+    <a class="btn btn-primary logout" href="{% url 'logout' %}" role="button">Sair</a>
     <a class="btn btn-primary novo-elemento" href="{% url 'criar-empresa' %}" role="button">Criar Nova Empresa</a>
     <h1>Minhas empresas</h1>
     <div>

@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import AnonymousUser
 from django.db.utils import IntegrityError
@@ -189,6 +189,30 @@ class LoginView(View):
                 template_name="auth/login.html",
                 context={"form": form},
             )
+
+
+@method_decorator(csrf_protect, name="dispatch")
+class LogoutView(View):
+    """
+    Faz o Logout do usuário.
+
+    Métodos:
+        get(request): Faz o logout do usuário e redireciona para a página de login.
+    """
+
+    def get(self, request):
+        """
+        Faz o logout do usuário e redireciona para a página de login.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: Redirecionamento para a página de login.
+        """
+        logout(request)
+
+        return redirect(reverse("login"))
 
 
 @method_decorator(csrf_protect, name="dispatch")
