@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.utils import IntegrityError
 from django.http import HttpResponseForbidden
+from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -31,6 +32,12 @@ class ViewProtegida(LoginRequiredMixin, UserPassesTestMixin):
 @method_decorator(csrf_protect, name="dispatch")
 class RedirectView(View):
     def get(self, request):
+        if isinstance(request.user, AnonymousUser):
+            return redirect(reverse("login"))
+
+        if not request.user.is_superuser:
+            return redirect(reverse("filtrar-pontos-comum"))
+
         return redirect(reverse("menu"))
 
 
@@ -63,7 +70,10 @@ class LoginView(View):
             else:
                 login(request, user)
 
-                return redirect(reverse("menu"))
+                if user.funcionario:
+                    request.session["funcionario_id"] = user.funcionario.id
+
+                return redirect(reverse("redirect"))
 
             return render(
                 request=request,
@@ -348,7 +358,7 @@ class RegistrarPontoView(ViewProtegida, View):
             )
 
 
-class FiltrarPontoView(ViewProtegida, View):
+class FiltrarPontoADMView(ViewProtegida, View):
     def get(self, request):
         form = FiltroPontoForm()
 
@@ -384,6 +394,87 @@ class FiltrarPontoView(ViewProtegida, View):
         form = FiltroPontoForm(request.POST)
 
         funcionario_id = request.GET.get("funcionario", None)
+        funcionario = Funcionario.objects.get(pk=funcionario_id)
+
+        if form.is_valid():
+            data_inicial = form.cleaned_data["data_inicial"]
+            data_final = form.cleaned_data["data_final"]
+
+            pontos = Ponto.objects.filter(
+                data__range=(data_inicial, data_final)
+            ).order_by("data")
+
+            return render(
+                request=request,
+                template_name="business/main/listar_pontos.html",
+                context={
+                    "funcionario": funcionario,
+                    "form": form,
+                    "filtrado": True,
+                    "pontos": pontos,
+                },
+            )
+
+        else:
+            return render(
+                request=request,
+                template_name="business/main/listar_pontos.html",
+                context={"funcionario": funcionario, "form": form, "filtrado": False},
+            )
+
+
+class FiltrarPontoComumView(LoginRequiredMixin, UserPassesTestMixin, View):
+    redirect_field_name = "next"
+
+    def test_func(self):
+        if isinstance(self.request.user, AnonymousUser):
+            return False
+
+        return not self.request.user.is_superuser
+
+    def handle_no_permission(self):
+        messages.error(
+            self.request,
+            "Você não tem permissão para acessar esta página.",
+        )
+        return redirect(reverse("login"))
+
+    def get(self, request):
+        form = FiltroPontoForm()
+
+        funcionario_id = request.session.get("funcionario_id", None)
+
+        if not funcionario_id:
+            messages.error(
+                request,
+                "Esta página é destinada apenas a funcionários",
+            )
+            return redirect(reverse("menu"))
+        else:
+            try:
+                funcionario = Funcionario.objects.get(pk=funcionario_id)
+            except Funcionario.DoesNotExist:
+                messages.error(request, "Funcionário não encontrado!")
+                return redirect(reverse("menu"))
+
+        return render(
+            request=request,
+            template_name="business/main/listar_pontos.html",
+            context={"funcionario": funcionario, "form": form, "filtrado": False},
+        )
+
+    def post(self, request):
+        form = FiltroPontoForm(request.POST)
+
+        funcionario_id = request.session.get("funcionario_id", None)
+
+        if funcionario_id != request.user.funcionario.id:
+            messages.error(
+                request,
+                "Erro na integridade dos dados da página!",
+            )
+            return redirect(reverse("menu"))
+
         funcionario = Funcionario.objects.get(pk=funcionario_id)
 
         if form.is_valid():

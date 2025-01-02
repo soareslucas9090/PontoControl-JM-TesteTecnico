@@ -3,7 +3,8 @@ from django.urls import path
 from .views import (
     CriarEmpresaView,
     CriarFuncionárioView,
-    FiltrarPontoView,
+    FiltrarPontoADMView,
+    FiltrarPontoComumView,
     ListarFuncionariosView,
     LoginView,
     MenuView,
@@ -29,7 +30,12 @@ urlpatterns = [
     ),
     path(
         "funcionarios/pontos/",
-        FiltrarPontoView.as_view(),
+        FiltrarPontoADMView.as_view(),
         name="filtrar-pontos",
+    ),
+    path(
+        "pontos/",
+        FiltrarPontoComumView.as_view(),
+        name="filtrar-pontos-comum",
     ),
 ]

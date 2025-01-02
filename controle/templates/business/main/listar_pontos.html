@@ -9,7 +9,7 @@
       <div class="alert alert-danger" role="alert">{{ form.errors }}</div>
     {% endif %}
 
-    <form id="form" method="post" action="#" class="filtro-form mt-3">
+    <form id="form" method="post" action="" class="filtro-form mt-3">
       {% csrf_token %}
       {% load custom_tags %}
 
@@ -35,16 +35,24 @@
             <thead>
               <tr>
                 <th>Data</th>
+                <th>Status</th>
                 <th>Entrada</th>
                 <th>Saída</th>
+                <th>Horas Trabalhadas</th>
               </tr>
             </thead>
             <tbody>
               {% for ponto in pontos %}
                 <tr>
                   <td>{{ ponto.data }}</td>
+                  {% if ponto.saida %}
+                    <td>Fechado</td>
+                  {% else %}
+                    <td>Aberto</td>
+                  {% endif %}
                   <td>{{ ponto.entrada }}</td>
                   <td>{{ ponto.saida }}</td>
+                  <td>{{ ponto.horas_trabalhadas.horas_trabalhadas }}</td>
                 </tr>
               {% endfor %}
             </tbody>

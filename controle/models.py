@@ -129,30 +129,21 @@ class Ponto(models.Model):
     entrada = models.TimeField(default=now)
     saida = models.TimeField(null=True)
 
-    def horas_trabalhadas(self) -> dict[str, str | datetime]:
+    def horas_trabalhadas(self) -> dict[str, str]:
         entrada_datetime = datetime.combine(self.data, self.entrada)
 
         if self.saida:
             saida_datetime = datetime.combine(self.data, self.saida)
             delta = saida_datetime - entrada_datetime
-
-            horas, resto = divmod(delta.total_seconds(), 3600)
-            minutos = resto // 60
-
-            return {
-                "status": "Ponto Fechado",
-                "horas_trabalhadas": f"{horas} horas e {minutos} minutos.",
-            }
         else:
-            horas_corridas = datetime.now() - entrada_datetime
+            delta = datetime.now() - entrada_datetime
 
-            horas, resto = divmod(horas_corridas.total_seconds(), 3600)
-            minutos = resto // 60
+        horas, resto = divmod(delta.total_seconds(), 3600)
+        minutos = resto // 60
 
-            return {
-                "status": "Ponto Aberto",
-                "horas_corridas": f"{horas} horas e {minutos} minutos.",
-            }
+        return {
+            "horas_trabalhadas": f"{horas} horas e {minutos} minutos.",
+        }
 
     def __str__(self):
         return f"Ponto de {self.funcionario.nome} - {self.data}"
