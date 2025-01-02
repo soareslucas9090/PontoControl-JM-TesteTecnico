@@ -49,7 +49,7 @@ class EmpresaForm(forms.Form):
     """
 
     nome = forms.CharField(widget=forms.TextInput(), label="Nome")
-    endereco = forms.CharField(widget=forms.TextInput(), label="Endereço")
+    endereco = forms.CharField(widget=forms.Textarea, label="Endereço")
 
 
 class FuncionarioForm(forms.Form):

@@ -1,7 +1,7 @@
-{% extends 'base.html' %}
+{% extends 'business/base_business.html' %}
 {% load static %}
 
-{% block content %}
+{% block main_content %}
   {% if messages %}
     {% for message in messages %}
       <script>
@@ -9,10 +9,19 @@
       </script>
     {% endfor %}
   {% endif %}
-  <div class="col">
-    <a class="btn btn-primary novo-elemento" href="{% url 'criar-funcionarios' %}" role="button">Criar Novo Funcionário</a>
-    <h1>Funcionários de {{ empresa.nome }}</h1>
-    <a class="btn btn-primary" href="{% url 'registrar-pontos' %}" role="button">Registro de Ponto</a>
+  <div class="content">
+    <div class="titulo">
+      <h1>Funcionários de {{ empresa.nome }}</h1>
+      <a class="btn btn-primary novo-elemento" href="{% url 'criar-funcionarios' %}" role="button">Criar Novo Funcionário</a>
+    </div>
+    <div style="display: flex; align-items: center; justify-self: center;">
+      <a class="btn btn-primary main-btn" href="{% url 'registrar-pontos' %}" role="button">
+        <div class="main-div-btn">
+          <img src="{% static 'img/icon_white.png' %}" alt="" />Registro de Ponto
+        </div>
+      </a>
+    </div>
+
     <div>
       <table class="table table-bordered mt-3">
         <thead>

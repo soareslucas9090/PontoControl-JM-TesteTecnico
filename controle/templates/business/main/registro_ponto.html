@@ -1,8 +1,8 @@
-{% extends 'base.html' %}
+{% extends 'business/base_business.html' %}
 {% load static %}
 
-{% block content %}
-  <div class="col">
+{% block main_content %}
+  <div class="content">
     <h1>Controle de Ponto: {{ empresa.nome }}</h1>
 
     {% if form.errors %}
@@ -23,11 +23,11 @@
     <form id="form" method="post" action="">
       {% csrf_token %}
       {% load custom_tags %}
-      <div class="form-group mt-3" style="width: 500px;">
+      <div class="form-group mt-3 input-ponto">
         <label for="id_CPF">{{ form.CPF.label }}</label>
         {{ form.CPF|add_class:'form-control' }}
+        <button type="submit" class="btn btn-primary btn-block mt-3">Bater Ponto</button>
       </div>
-      <button type="submit" class="btn btn-primary btn-block mt-3">Salvar</button>
     </form>
   </div>
 {% endblock %}

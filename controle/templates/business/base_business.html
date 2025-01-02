@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="logo">
+    <div>
+      <a href="{% url 'menu' %}"><img src="{% static 'img/icon.png' %}" alt="PontoControl" /></a>
+    </div>
+    <a class="btn btn-primary btn-logout" href="{% url 'logout' %}" role="button">Logout</a>
+  </div>
+  <hr />
+  {% block main_content %}
+
+  {% endblock %}
+{% endblock %}

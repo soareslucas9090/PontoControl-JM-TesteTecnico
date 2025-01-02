@@ -1,8 +1,8 @@
-{% extends 'base.html' %}
+{% extends 'business/base_business.html' %}
 {% load static %}
 
-{% block content %}
-  <div class="col">
+{% block main_content %}
+  <div class="content">
     <h1>Pontos de {{ funcionario.nome }}</h1>
 
     {% if form.errors %}

@@ -1,8 +1,8 @@
-{% extends 'base.html' %}
+{% extends 'business/base_business.html' %}
 {% load static %}
 
-{% block content %}
-  <div class="col">
+{% block main_content %}
+  <div class="content">
     <h1>Criar Funcionário</h1>
 
     {% if form.errors %}
@@ -12,19 +12,19 @@
     <form id="form" method="post" action="">
       {% csrf_token %}
       {% load custom_tags %}
-      <div class="form-group mt-3" style="width: 500px;">
+      <div class="form-group mt-3">
         <label for="id_nome">{{ form.nome.label }}</label>
         {{ form.nome|add_class:'form-control' }}
       </div>
-      <div class="form-group mt-3" style="width: 500px;">
+      <div class="form-group mt-3" style="width: 200px;">
         <label for="id_cpf">{{ form.cpf.label }}</label>
         {{ form.cpf|add_class:'form-control' }}
       </div>
-      <div class="form-group mt-3" style="width: 500px;">
+      <div class="form-group mt-3">
         <label for="id_email">{{ form.email.label }}</label>
         {{ form.email|add_class:'form-control' }}
       </div>
-      <div class="form-group mt-3" style="width: 500px;">
+      <div class="form-group mt-3">
         <label for="id_senha">{{ form.senha.label }}</label>
         {{ form.senha|add_class:'form-control' }}
       </div>
