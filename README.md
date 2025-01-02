@@ -95,6 +95,8 @@ O projeto está dividido em aplicações modulares:
 
 Usando o ```apps.py``` foi criado uma mockagem de dados de Empresas, Funcionários, Pontos e Usuários, para facilitar os testes do sistema. Os dados são mockados após o primeiro migrate.
 
+Foi inserido duas batidas de ponto para cada funcionário para o dia 02/01/2025 e dia 03/01/2025. Usar este intervalo no filtro de data para observar o histórico de pontos, ou iniciar um novo ponto.
+
 |Nome|Login|Senha|Email|Empresa|Observação|
 |----|-----|-----|-----|-------|----------|
 |Admin|12345678910|12345678910|||Superusuário
