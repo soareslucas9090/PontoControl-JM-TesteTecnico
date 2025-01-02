@@ -608,7 +608,7 @@ class FiltrarPontoADMView(ViewProtegida, View):
             data_final = form.cleaned_data["data_final"]
 
             pontos = Ponto.objects.filter(
-                data__range=(data_inicial, data_final)
+                data__range=(data_inicial, data_final), funcionario=funcionario
             ).order_by("data")
 
             return render(
@@ -730,7 +730,7 @@ class FiltrarPontoComumView(LoginRequiredMixin, UserPassesTestMixin, View):
             data_final = form.cleaned_data["data_final"]
 
             pontos = Ponto.objects.filter(
-                data__range=(data_inicial, data_final)
+                data__range=(data_inicial, data_final), funcionario=funcionario
             ).order_by("data")
 
             return render(
