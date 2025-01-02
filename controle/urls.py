@@ -7,10 +7,12 @@ from .views import (
     ListarFuncionariosView,
     LoginView,
     MenuView,
+    RedirectView,
     RegistrarPontoView,
 )
 
 urlpatterns = [
+    path("", RedirectView.as_view(), name="redirect"),
     path("login/", LoginView.as_view(), name="login"),
     path("menu/", MenuView.as_view(), name="menu"),
     path("criar/empresa/", CriarEmpresaView.as_view(), name="criar-empresa"),

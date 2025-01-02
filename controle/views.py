@@ -21,7 +21,17 @@ class ViewProtegida(LoginRequiredMixin, UserPassesTestMixin):
         return self.request.user.is_superuser
 
     def handle_no_permission(self):
-        return HttpResponseForbidden("Você não tem permissão para acessar esta página.")
+        messages.error(
+            self.request,
+            "Você não tem permissão para acessar esta página.",
+        )
+        return redirect(reverse("login"))
+
+
+@method_decorator(csrf_protect, name="dispatch")
+class RedirectView(View):
+    def get(self, request):
+        return redirect(reverse("menu"))
 
 
 @method_decorator(csrf_protect, name="dispatch")

@@ -2,6 +2,14 @@
 {% load static %}
 
 {% block content %}
+  {% if messages %}
+    {% for message in messages %}
+      <script>
+        alert('{{ message }}')
+      </script>
+    {% endfor %}
+  {% endif %}
+
   <div class="col-12 col-md-8 col-lg-4 full-height vertical-center">
     <div class="card shadow-lg login-card">
       <div class="card-body">
