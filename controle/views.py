@@ -687,13 +687,13 @@ class FiltrarPontoComumView(LoginRequiredMixin, UserPassesTestMixin, View):
                 request,
                 "Esta página é destinada apenas a funcionários",
             )
-            return redirect(reverse("menu"))
+            return redirect(reverse("login"))
         else:
             try:
                 funcionario = Funcionario.objects.get(pk=funcionario_id)
             except Funcionario.DoesNotExist:
                 messages.error(request, "Funcionário não encontrado!")
-                return redirect(reverse("menu"))
+                return redirect(reverse("login"))
 
         return render(
             request=request,
@@ -721,7 +721,7 @@ class FiltrarPontoComumView(LoginRequiredMixin, UserPassesTestMixin, View):
                 request,
                 "Erro na integridade dos dados da página!",
             )
-            return redirect(reverse("menu"))
+            return redirect(reverse("login"))
 
         funcionario = Funcionario.objects.get(pk=funcionario_id)
 
