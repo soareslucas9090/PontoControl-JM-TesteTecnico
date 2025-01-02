@@ -10,7 +10,7 @@ from django.utils.timezone import now
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
 
-from .forms import EmpresaForm, FuncionarioForm, LoginForm, PontoForm
+from .forms import EmpresaForm, FiltroPontoForm, FuncionarioForm, LoginForm, PontoForm
 from .models import Empresa, Funcionario, Ponto, Usuario
 
 
@@ -126,7 +126,7 @@ class CriarEmpresaView(ViewProtegida, View):
             )
 
 
-class ListarFuncionáriosView(ViewProtegida, View):
+class ListarFuncionariosView(ViewProtegida, View):
     def get(self, request):
         empresa_id = request.GET.get("empresa", None)
 
@@ -335,4 +335,69 @@ class RegistrarPontoView(ViewProtegida, View):
                 request=request,
                 template_name="business/main/registro_ponto.html",
                 context={"empresa": empresa, "form": form},
+            )
+
+
+class FiltrarPontoView(ViewProtegida, View):
+    def get(self, request):
+        form = FiltroPontoForm()
+
+        funcionario_id = request.GET.get("funcionario", None)
+
+        if not funcionario_id:
+            messages.error(
+                request,
+                "Selecione uma empresa e depois um funcionário!",
+            )
+            return redirect(reverse("menu"))
+        else:
+            try:
+                funcionario = Funcionario.objects.get(pk=funcionario_id)
+
+                if funcionario.empresa.id != int(request.session.get("empresa_id")):
+                    messages.error(
+                        request,
+                        "Funcionário não pertence a empresa selecionada!",
+                    )
+                    return redirect(reverse("menu"))
+            except Funcionario.DoesNotExist:
+                messages.error(request, "Funcionário não encontrado!")
+                return redirect(reverse("menu"))
+
+        return render(
+            request=request,
+            template_name="business/main/listar_pontos.html",
+            context={"funcionario": funcionario, "form": form, "filtrado": False},
+        )
+
+    def post(self, request):
+        form = FiltroPontoForm(request.POST)
+
+        funcionario_id = request.GET.get("funcionario", None)
+        funcionario = Funcionario.objects.get(pk=funcionario_id)
+
+        if form.is_valid():
+            data_inicial = form.cleaned_data["data_inicial"]
+            data_final = form.cleaned_data["data_final"]
+
+            pontos = Ponto.objects.filter(
+                data__range=(data_inicial, data_final)
+            ).order_by("data")
+
+            return render(
+                request=request,
+                template_name="business/main/listar_pontos.html",
+                context={
+                    "funcionario": funcionario,
+                    "form": form,
+                    "filtrado": True,
+                    "pontos": pontos,
+                },
+            )
+
+        else:
+            return render(
+                request=request,
+                template_name="business/main/listar_pontos.html",
+                context={"funcionario": funcionario, "form": form, "filtrado": False},
             )

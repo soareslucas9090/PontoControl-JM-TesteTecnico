@@ -30,7 +30,7 @@
               <td>{{ usuario.funcionario.email }}</td>
               <td>{{ usuario.cpf }}</td>
               <td>
-                <a class="btn btn-secondary ml-3 mr-3 mb-3" href="#" role="button">Pontos</a>
+                <a class="btn btn-secondary ml-3 mr-3 mb-3" href="{% url 'filtrar-pontos' %}?funcionario={{ usuario.funcionario.id }}" role="button">Pontos</a>
               </td>
             </tr>
           {% endfor %}

@@ -61,3 +61,25 @@ class PontoForm(forms.Form):
             raise ValidationError("O CPF deve conter 11 dígitos numéricos")
 
         return cpf
+
+
+class FiltroPontoForm(forms.Form):
+    data_inicial = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date"}), label="Data Inicial"
+    )
+    data_final = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date"}), label="Data Final"
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        data_inicial = cleaned_data.get("data_inicial")
+        data_final = cleaned_data.get("data_final")
+
+        if data_inicial and data_final:
+            if data_inicial > data_final:
+                raise ValidationError(
+                    "A data inicial não pode ser maior que a data final."
+                )
+
+        return cleaned_data

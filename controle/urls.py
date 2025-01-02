@@ -3,17 +3,18 @@ from django.urls import path
 from .views import (
     CriarEmpresaView,
     CriarFuncionárioView,
-    ListarFuncionáriosView,
-    RegistrarPontoView,
+    FiltrarPontoView,
+    ListarFuncionariosView,
     LoginView,
     MenuView,
+    RegistrarPontoView,
 )
 
 urlpatterns = [
     path("login/", LoginView.as_view(), name="login"),
     path("menu/", MenuView.as_view(), name="menu"),
     path("criar/empresa/", CriarEmpresaView.as_view(), name="criar-empresa"),
-    path("funcionarios/", ListarFuncionáriosView.as_view(), name="funcionarios"),
+    path("funcionarios/", ListarFuncionariosView.as_view(), name="funcionarios"),
     path(
         "criar/funcionarios/",
         CriarFuncionárioView.as_view(),
@@ -23,5 +24,10 @@ urlpatterns = [
         "ponto/",
         RegistrarPontoView.as_view(),
         name="registrar-pontos",
+    ),
+    path(
+        "funcionarios/pontos/",
+        FiltrarPontoView.as_view(),
+        name="filtrar-pontos",
     ),
 ]

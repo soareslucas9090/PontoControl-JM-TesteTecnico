@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="col">
+    <h1>Pontos de {{ funcionario.nome }}</h1>
+
+    {% if form.errors %}
+      <div class="alert alert-danger" role="alert">{{ form.errors }}</div>
+    {% endif %}
+
+    <form id="form" method="post" action="#" class="filtro-form mt-3">
+      {% csrf_token %}
+      {% load custom_tags %}
+
+      <div class="form-group">
+        <label for="id_data_inicial">{{ form.data_inicial.label }}</label>
+        {{ form.data_inicial|add_class:'form-control' }}
+      </div>
+      <div class="form-group">
+        <label for="id_data_final">{{ form.data_final.label }}</label>
+        {{ form.data_final|add_class:'form-control' }}
+      </div>
+      <button type="submit" class="btn btn-primary btn-block mt-3">Filtrar</button>
+    </form>
+
+    <div>
+      {% if not filtrado %}
+        <h3>Filtre os pontos de {{ funcionario.nome }} pro um período de data.</h3>
+      {% else %}
+        {% if not pontos %}
+          <h3>Não há pontos registrados para o período selecionado.</h3>
+        {% else %}
+          <table class="table table-bordered mt-3">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Entrada</th>
+                <th>Saída</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ponto in pontos %}
+                <tr>
+                  <td>{{ ponto.data }}</td>
+                  <td>{{ ponto.entrada }}</td>
+                  <td>{{ ponto.saida }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
