@@ -16,12 +16,36 @@ from .models import Empresa, Funcionario, Ponto, Usuario
 
 
 class ViewProtegida(LoginRequiredMixin, UserPassesTestMixin):
+    """
+    Classe base para proteger visualizações. Apenas usuários com acesso de SUPERUSER.
+
+    Atributos:
+        redirect_field_name (str): Nome do campo usado para redirecionamento após o login. É usado o
+        valor padrão "next".
+
+    Métodos:
+        test_func(): Define a lógica para verificar se o usuário tem permissão.
+        handle_no_permission(): Trata o caso de falta de permissão, redirecionando e exibindo uma mensagem.
+    """
+
     redirect_field_name = "next"
 
     def test_func(self):
+        """
+        Verifica se o usuário atual é superusuário.
+
+        Retorno:
+            Booleano: Verdadeiro se o usuário for superusuário, caso contrário, Falso.
+        """
         return self.request.user.is_superuser
 
     def handle_no_permission(self):
+        """
+        Trata a falta de permissão redirecionando o usuário para a página de login com uma mensagem de erro.
+
+        Retorno:
+            HttpResponse: Redirecionamento para a página de login.
+        """
         messages.error(
             self.request,
             "Você não tem permissão para acessar esta página.",
@@ -31,7 +55,23 @@ class ViewProtegida(LoginRequiredMixin, UserPassesTestMixin):
 
 @method_decorator(csrf_protect, name="dispatch")
 class RedirectView(View):
+    """
+    Redireciona o usuário para diferentes páginas dependendo do tipo de usuário.
+
+    Métodos:
+        get(request): Lida com requisições GET para redirecionar o usuário.
+    """
+
     def get(self, request):
+        """
+        Redireciona o usuário com base em seu status de autenticação e privilégios.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: Redirecionamento para a página apropriada.
+        """
         if isinstance(request.user, AnonymousUser):
             return redirect(reverse("login"))
 
@@ -43,7 +83,24 @@ class RedirectView(View):
 
 @method_decorator(csrf_protect, name="dispatch")
 class LoginView(View):
+    """
+    Gerencia o login de usuários.
+
+    Métodos:
+        get(request): Exibe o formulário de login.
+        post(request): Lida com o envio do formulário de login e autenticação do usuário.
+    """
+
     def get(self, request):
+        """
+        Renderiza a página de login com o formulário vazio.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: Página de login renderizada.
+        """
         form = LoginForm()
 
         return render(
@@ -53,6 +110,15 @@ class LoginView(View):
         )
 
     def post(self, request):
+        """
+        Processa o formulário de login e autentica o usuário.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: Redireciona ou renderiza novamente a página de login com erros.
+        """
         form = LoginForm(request.POST)
 
         if form.is_valid():
@@ -91,7 +157,23 @@ class LoginView(View):
 
 @method_decorator(csrf_protect, name="dispatch")
 class MenuView(ViewProtegida, View):
+    """
+    Exibe o menu principal ao gestor.
+
+    Métodos:
+        get(request): Renderiza o menu.
+    """
+
     def get(self, request):
+        """
+        Faz a query de empresas e renderiza o menu.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: Página de menu renderizada.
+        """
         empresas = Empresa.objects.all()
 
         return render(
@@ -105,7 +187,24 @@ class MenuView(ViewProtegida, View):
 
 @method_decorator(csrf_protect, name="dispatch")
 class CriarEmpresaView(ViewProtegida, View):
+    """
+    Página para criação de novas empresas.
+
+    Métodos:
+        get(request): Exibe o formulário de criação de empresas.
+        post(request): Lida com o envio do formulário de criação de empresas e efetiva as alterações.
+    """
+
     def get(self, request):
+        """
+        Renderiza a página de crição de empresa com o formulário vazio.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: Página de login renderizada.
+        """
         form = EmpresaForm()
 
         return render(
@@ -115,6 +214,15 @@ class CriarEmpresaView(ViewProtegida, View):
         )
 
     def post(self, request):
+        """
+        Processa o formulário de criação de empresa e exibe mensagem de sucesso ao usuário.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: Redireciona ou renderiza novamente a página de criação de empresas com erros.
+        """
         form = EmpresaForm(request.POST)
 
         if form.is_valid():
@@ -147,7 +255,23 @@ class CriarEmpresaView(ViewProtegida, View):
 
 
 class ListarFuncionariosView(ViewProtegida, View):
+    """
+    Página para listagem de funcionários da empresa escolhida.
+
+    Métodos:
+        get(request): Renderiza a página de listagem de funcionários.
+    """
+
     def get(self, request):
+        """
+        Exibe a página de listagem de funcionários da empresa escolhida.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: Renderiza a página ou redireciona de volta ao menu exibindo uma mensagem de erro.
+        """
         empresa_id = request.GET.get("empresa", None)
 
         if not empresa_id:
@@ -174,7 +298,25 @@ class ListarFuncionariosView(ViewProtegida, View):
 
 
 class CriarFuncionárioView(ViewProtegida, View):
+    """
+    Página para criação de funcionários da empresa escolhida.
+
+    Métodos:
+        get(request): Exibe o formulário de criação de funcionários.
+        post(request): Lida com o envio do formulário de criação de funcionários e efetiva as alterações.
+    """
+
     def get(self, request):
+        """
+        Renderiza a página de crição de funcionários com o formulário vazio.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: Página de criação de funcionários renderizada ou redirecionamento de volta
+            ao menu em caso de erros.
+        """
         form = FuncionarioForm()
 
         empresa_id = request.session.get("empresa_id", None)
@@ -199,6 +341,15 @@ class CriarFuncionárioView(ViewProtegida, View):
         )
 
     def post(self, request):
+        """
+        Processa o formulário de criação de funcionários e exibe mensagem de sucesso ou erro ao usuário.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: Redireciona ou renderiza novamente a página de crição de funcionários com erro.
+        """
         form = FuncionarioForm(request.POST)
 
         empresa_id = request.session.get("empresa_id", None)
@@ -265,7 +416,26 @@ class CriarFuncionárioView(ViewProtegida, View):
 
 
 class RegistrarPontoView(ViewProtegida, View):
+    """
+    Página para registro de ponto dos funcionários da empresa escolhida.
+
+    Métodos:
+        get(request): Exibe o formulário de registro de ponto de funcionários.
+        post(request): Lida com o envio do formulário de registro de ponto dos funcionários e exibe o status
+        do ponto ou erros gerados.
+    """
+
     def get(self, request):
+        """
+        Renderiza a página de registro de ponto dos funcionários com o formulário vazio.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: Página de registro de ponto dos funcionários renderizada ou redirecionamento de volta
+            ao menu em caso de erros.
+        """
         form = PontoForm()
 
         empresa_id = request.session.get("empresa_id", None)
@@ -290,6 +460,15 @@ class RegistrarPontoView(ViewProtegida, View):
         )
 
     def post(self, request):
+        """
+        Processa o formulário de egistro de ponto de funcionários e exibe mensagem de sucesso ou erro ao usuário.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: Redireciona ou renderiza novamente a página de registro de ponto de funcionários com erro.
+        """
         form = PontoForm(request.POST)
 
         empresa_id = request.session.get("empresa_id", None)
@@ -359,7 +538,25 @@ class RegistrarPontoView(ViewProtegida, View):
 
 
 class FiltrarPontoADMView(ViewProtegida, View):
+    """
+    Página para filtragem e visualização dos pontos do funcionário escolhido na visão do gestor.
+
+    Métodos:
+        get(request): Exibe a página de listagem de pontos do funcionário escolhido.
+        post(request): Lida com o filtro de datas aplicado e exibe os pontos filtrados.
+    """
+
     def get(self, request):
+        """
+        Renderiza a página de listagem de pontos do funcionário escolhido.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: Página de listagem dos pontos do funcionário renderizada ou redirecionamento de volta
+            ao menu em caso de erros.
+        """
         form = FiltroPontoForm()
 
         funcionario_id = request.GET.get("funcionario", None)
@@ -391,6 +588,16 @@ class FiltrarPontoADMView(ViewProtegida, View):
         )
 
     def post(self, request):
+        """
+        Processa a filtragem de pontos do funcionário e lista os pontos filtrados.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: renderiza novamente a página com a listagem dos pontos fitrados ou em caso de erros
+            renderiza novamente com os erros gerados ou redireciona para a página de login.
+        """
         form = FiltroPontoForm(request.POST)
 
         funcionario_id = request.GET.get("funcionario", None)
@@ -424,9 +631,30 @@ class FiltrarPontoADMView(ViewProtegida, View):
 
 
 class FiltrarPontoComumView(LoginRequiredMixin, UserPassesTestMixin, View):
+    """
+    Página para filtragem e visualização dos pontos do funcionário logado.
+
+    Atributos:
+        redirect_field_name (str): Nome do campo usado para redirecionamento após o login. É usado o
+        valor padrão "next".
+
+    Métodos:
+        test_func(): Define a lógica para verificar se o usuário tem permissão de acesso.
+        handle_no_permission(): Trata o caso de falta de permissão, redirecionando e exibindo uma mensagem.
+        get(request): Exibe a página de listagem de pontos do funcionário que fez login.
+        post(request): Lida com o filtro de datas aplicado e exibe os pontos filtrados.
+    """
+
     redirect_field_name = "next"
 
     def test_func(self):
+        """
+        Verifica se o usuário atual não é anônimo e não é superusuário.
+
+        Retorno:
+            Booleano: Verdadeiro se o usuário não for superusuário e nem anônimo, caso contrário em qualquer uma das
+            duas hipóteses, Falso.
+        """
         if isinstance(self.request.user, AnonymousUser):
             return False
 
@@ -440,6 +668,16 @@ class FiltrarPontoComumView(LoginRequiredMixin, UserPassesTestMixin, View):
         return redirect(reverse("login"))
 
     def get(self, request):
+        """
+        Renderiza a página de listagem de pontos do funcionário logado.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: Página de listagem dos pontos do funcionário renderizada ou redirecionamento de volta
+            ao login em caso de erros.
+        """
         form = FiltroPontoForm()
 
         funcionario_id = request.session.get("funcionario_id", None)
@@ -464,6 +702,16 @@ class FiltrarPontoComumView(LoginRequiredMixin, UserPassesTestMixin, View):
         )
 
     def post(self, request):
+        """
+        Processa a filtragem de pontos do funcionário e lista os pontos filtrados.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: renderiza novamente a página com a listagem dos pontos fitrados ou em caso de erros
+            renderiza novamente com os erros gerados ou redireciona para a página de login.
+        """
         form = FiltroPontoForm(request.POST)
 
         funcionario_id = request.session.get("funcionario_id", None)
