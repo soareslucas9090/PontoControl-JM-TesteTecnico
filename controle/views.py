@@ -1,9 +1,9 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.models import AnonymousUser
 from django.db.utils import IntegrityError
 from django.http import HttpResponseForbidden
-from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -15,7 +15,7 @@ from .forms import EmpresaForm, FiltroPontoForm, FuncionarioForm, LoginForm, Pon
 from .models import Empresa, Funcionario, Ponto, Usuario
 
 
-class ViewProtegida(LoginRequiredMixin, UserPassesTestMixin):
+class ViewProtegidaADM(LoginRequiredMixin, UserPassesTestMixin):
     """
     Classe base para proteger visualizações. Apenas usuários com acesso de SUPERUSER.
 
@@ -46,6 +46,42 @@ class ViewProtegida(LoginRequiredMixin, UserPassesTestMixin):
         Retorno:
             HttpResponse: Redirecionamento para a página de login.
         """
+        messages.error(
+            self.request,
+            "Você não tem permissão para acessar esta página.",
+        )
+        return redirect(reverse("login"))
+
+
+class ViewProtegidaComum(LoginRequiredMixin, UserPassesTestMixin):
+    """
+    Classe base para proteger visualizações. Apenas usuários não anônimos e não superusuários.
+
+    Atributos:
+        redirect_field_name (str): Nome do campo usado para redirecionamento após o login. É usado o
+        valor padrão "next".
+
+    Métodos:
+        test_func(): Define a lógica para verificar se o usuário tem permissão de acesso.
+        handle_no_permission(): Trata o caso de falta de permissão, redirecionando e exibindo uma mensagem.
+    """
+
+    redirect_field_name = "next"
+
+    def test_func(self):
+        """
+        Verifica se o usuário atual não é anônimo e não é superusuário.
+
+        Retorno:
+            Booleano: Verdadeiro se o usuário não for superusuário e nem anônimo, caso contrário em qualquer uma das
+            duas hipóteses, Falso.
+        """
+        if isinstance(self.request.user, AnonymousUser):
+            return False
+
+        return not self.request.user.is_superuser
+
+    def handle_no_permission(self):
         messages.error(
             self.request,
             "Você não tem permissão para acessar esta página.",
@@ -156,7 +192,7 @@ class LoginView(View):
 
 
 @method_decorator(csrf_protect, name="dispatch")
-class MenuView(ViewProtegida, View):
+class MenuView(ViewProtegidaADM, View):
     """
     Exibe o menu principal ao gestor.
 
@@ -186,7 +222,7 @@ class MenuView(ViewProtegida, View):
 
 
 @method_decorator(csrf_protect, name="dispatch")
-class CriarEmpresaView(ViewProtegida, View):
+class CriarEmpresaView(ViewProtegidaADM, View):
     """
     Página para criação de novas empresas.
 
@@ -254,7 +290,8 @@ class CriarEmpresaView(ViewProtegida, View):
             )
 
 
-class ListarFuncionariosView(ViewProtegida, View):
+@method_decorator(csrf_protect, name="dispatch")
+class ListarFuncionariosView(ViewProtegidaADM, View):
     """
     Página para listagem de funcionários da empresa escolhida.
 
@@ -297,7 +334,8 @@ class ListarFuncionariosView(ViewProtegida, View):
         )
 
 
-class CriarFuncionárioView(ViewProtegida, View):
+@method_decorator(csrf_protect, name="dispatch")
+class CriarFuncionárioView(ViewProtegidaADM, View):
     """
     Página para criação de funcionários da empresa escolhida.
 
@@ -415,7 +453,8 @@ class CriarFuncionárioView(ViewProtegida, View):
             )
 
 
-class RegistrarPontoView(ViewProtegida, View):
+@method_decorator(csrf_protect, name="dispatch")
+class RegistrarPontoView(ViewProtegidaADM, View):
     """
     Página para registro de ponto dos funcionários da empresa escolhida.
 
@@ -537,7 +576,8 @@ class RegistrarPontoView(ViewProtegida, View):
             )
 
 
-class FiltrarPontoADMView(ViewProtegida, View):
+@method_decorator(csrf_protect, name="dispatch")
+class FiltrarPontoADMView(ViewProtegidaADM, View):
     """
     Página para filtragem e visualização dos pontos do funcionário escolhido na visão do gestor.
 
@@ -630,42 +670,15 @@ class FiltrarPontoADMView(ViewProtegida, View):
             )
 
 
-class FiltrarPontoComumView(LoginRequiredMixin, UserPassesTestMixin, View):
+@method_decorator(csrf_protect, name="dispatch")
+class FiltrarPontoComumView(ViewProtegidaComum, View):
     """
     Página para filtragem e visualização dos pontos do funcionário logado.
 
-    Atributos:
-        redirect_field_name (str): Nome do campo usado para redirecionamento após o login. É usado o
-        valor padrão "next".
-
     Métodos:
-        test_func(): Define a lógica para verificar se o usuário tem permissão de acesso.
-        handle_no_permission(): Trata o caso de falta de permissão, redirecionando e exibindo uma mensagem.
         get(request): Exibe a página de listagem de pontos do funcionário que fez login.
         post(request): Lida com o filtro de datas aplicado e exibe os pontos filtrados.
     """
-
-    redirect_field_name = "next"
-
-    def test_func(self):
-        """
-        Verifica se o usuário atual não é anônimo e não é superusuário.
-
-        Retorno:
-            Booleano: Verdadeiro se o usuário não for superusuário e nem anônimo, caso contrário em qualquer uma das
-            duas hipóteses, Falso.
-        """
-        if isinstance(self.request.user, AnonymousUser):
-            return False
-
-        return not self.request.user.is_superuser
-
-    def handle_no_permission(self):
-        messages.error(
-            self.request,
-            "Você não tem permissão para acessar esta página.",
-        )
-        return redirect(reverse("login"))
 
     def get(self, request):
         """
