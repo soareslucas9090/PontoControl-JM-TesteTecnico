@@ -73,17 +73,22 @@ O projeto está dividido em aplicações modulares:
     pip install -r requirements.txt
     ```
 
-5. Aplique as migrações:
+4. Aplique as migrações:
     ```bash
     python manage.py migrate
     ```
     **As migrações também iram criar os dados pré configurados para facilitar o teste do sistema. A tabela de usuários estará logo abaixo.**
 
-6. Crie um superusuário:
+5. Crie um superusuário:
     ```bash
     python manage.py createsuperuser
     ```
     **Não é necessário a criação do Super Usuário, por estar contido nos dados mockados, mas é possível a criação caso preferível.**
+
+6. Colete os arquivos estáticos para disposição do servidor:
+    ```bash
+    python manage.py collectstatic
+    ```
 
 7. Inicie o servidor de desenvolvimento:
     ```bash
