@@ -5,11 +5,14 @@ from django.contrib.auth.models import AnonymousUser
 from django.db.utils import IntegrityError
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponseForbidden
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.timezone import now
 from django.views import View
+import fitz
+from datetime import datetime
 from django.views.decorators.csrf import csrf_protect
 
 from .forms import EmpresaForm, FiltroPontoForm, FuncionarioForm, LoginForm, PontoForm
@@ -874,6 +877,31 @@ class RegistrarPontoView(ViewProtegidaADM, View):
             )
 
 
+def exportar_pdf(pontos, funcionario):
+    pdf_document = fitz.open()
+    page = pdf_document.new_page()
+
+    header = f"Relatório de Pontos - {funcionario.nome}\n"
+    sub_header = f"Data de Geração: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n\n"
+    text = header + sub_header
+
+    for ponto in pontos:
+        text += f"Data: {ponto.data.strftime('%d/%m/%Y')} - Horas Trabalhadas: {ponto.horas_trabalhadas()['horas_trabalhadas']}\n"
+
+    page.insert_textbox(
+        fitz.Rect(72, 72, 500, 800),
+        text,
+        fontsize=12,
+        fontname="helv",
+        align=0,
+    )
+
+    pdf_bytes = pdf_document.write()
+    pdf_document.close()
+
+    return pdf_bytes
+
+
 @method_decorator(csrf_protect, name="dispatch")
 class FiltrarPontoADMView(ViewProtegidaADM, View):
     """
@@ -881,7 +909,7 @@ class FiltrarPontoADMView(ViewProtegidaADM, View):
 
     Métodos:
         get(request): Exibe a página de listagem de pontos do funcionário escolhido.
-        post(request): Lida com o filtro de datas aplicado e exibe os pontos filtrados.
+        post(request): Lida com o filtro de datas aplicado e exibe ou faz o download dos pontos filtrados.
     """
 
     def get(self, request):
@@ -933,8 +961,8 @@ class FiltrarPontoADMView(ViewProtegidaADM, View):
             request (HttpRequest): O objeto da requisição HTTP.
 
         Retorno:
-            HttpResponse: renderiza novamente a página com a listagem dos pontos fitrados ou em caso de erros
-            renderiza novamente com os erros gerados ou redireciona para a página de login.
+            HttpResponse: renderiza novamente a página com a listagem dos pontos fitrados ou faz o download do
+            PDF exportado ou, em caso de erros, renderiza novamente com os erros gerados ou redireciona para a página de login.
         """
         form = FiltroPontoForm(request.POST)
 
@@ -948,6 +976,18 @@ class FiltrarPontoADMView(ViewProtegidaADM, View):
             pontos = Ponto.objects.filter(
                 data__range=(data_inicial, data_final), funcionario=funcionario
             ).order_by("data")
+
+            form_export = request.POST.get("form-export")
+
+            if form_export == "pdf":
+                response = HttpResponse(content_type="application/pdf")
+                response["Content-Disposition"] = (
+                    f"attachment; filename=relatorio_pontos_{funcionario.nome}.pdf"
+                )
+                pdf_bytes = exportar_pdf(pontos, funcionario)
+                response.write(pdf_bytes)
+
+                return response
 
             return render(
                 request=request,
@@ -975,7 +1015,7 @@ class FiltrarPontoComumView(ViewProtegidaComum, View):
 
     Métodos:
         get(request): Exibe a página de listagem de pontos do funcionário que fez login.
-        post(request): Lida com o filtro de datas aplicado e exibe os pontos filtrados.
+        post(request): Lida com o filtro de datas aplicado e exibe ou faz o dowload dos pontos filtrados.
     """
 
     def get(self, request):
@@ -1020,8 +1060,8 @@ class FiltrarPontoComumView(ViewProtegidaComum, View):
             request (HttpRequest): O objeto da requisição HTTP.
 
         Retorno:
-            HttpResponse: renderiza novamente a página com a listagem dos pontos fitrados ou em caso de erros
-            renderiza novamente com os erros gerados ou redireciona para a página de login.
+            HttpResponse: renderiza novamente a página com a listagem dos pontos fitradosfaz o download do
+            PDF exportado ou, em caso de erros, renderiza novamente com os erros gerados ou redireciona para a página de login.
         """
         form = FiltroPontoForm(request.POST)
 
@@ -1043,6 +1083,18 @@ class FiltrarPontoComumView(ViewProtegidaComum, View):
             pontos = Ponto.objects.filter(
                 data__range=(data_inicial, data_final), funcionario=funcionario
             ).order_by("data")
+
+            form_export = request.POST.get("form-export")
+
+            if form_export == "pdf":
+                response = HttpResponse(content_type="application/pdf")
+                response["Content-Disposition"] = (
+                    f"attachment; filename=relatorio_pontos_{funcionario.nome}.pdf"
+                )
+                pdf_bytes = exportar_pdf(pontos, funcionario)
+                response.write(pdf_bytes)
+
+                return response
 
             return render(
                 request=request,
