@@ -29,6 +29,7 @@ Este é um sistema desenvolvido em Django para gerenciar empresas, funcionários
 - Registro de entrada e saída por funcionário.
 - Cálculo automático de horas trabalhadas por dia.
 - Filtragem de registros de ponto por intervalo de datas.
+- Exportação em PDF dos pontos dos funcionários.
 
 ### 👨‍💼Interface do Administrador
 
