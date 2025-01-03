@@ -1,5 +1,7 @@
 asgiref==3.8.1
 Django==5.1.4
+PyMuPDF==1.25.1
 sqlparse==0.5.3
+typing_extensions==4.12.2
 tzdata==2024.2
 whitenoise==6.8.2
