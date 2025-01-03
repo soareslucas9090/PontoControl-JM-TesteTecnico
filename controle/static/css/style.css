@@ -71,6 +71,19 @@ hr {
   max-height: 350px;
 }
 
+.editar-elemento {
+  display: flex;
+  margin-right: 10px;
+  margin-left: 10px;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
+  img {
+    width: 25px;
+  }
+}
+
 .novo-elemento {
   position: relative;
 }

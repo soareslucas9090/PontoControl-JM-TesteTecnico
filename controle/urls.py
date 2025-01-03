@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     CriarEmpresaView,
     CriarFuncionárioView,
+    EditarEmpresaView,
     FiltrarPontoADMView,
     FiltrarPontoComumView,
     ListarFuncionariosView,
@@ -19,6 +20,9 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
     path("menu/", MenuView.as_view(), name="menu"),
     path("criar/empresa/", CriarEmpresaView.as_view(), name="criar-empresa"),
+    path(
+        "editar/empresa/<int:pk>/", EditarEmpresaView.as_view(), name="editar-empresa"
+    ),
     path("funcionarios/", ListarFuncionariosView.as_view(), name="funcionarios"),
     path(
         "criar/funcionarios/",

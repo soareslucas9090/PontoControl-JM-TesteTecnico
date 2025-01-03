@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import AnonymousUser
 from django.db.utils import IntegrityError
 from django.http import HttpResponseForbidden
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.timezone import now
@@ -327,6 +327,100 @@ class CriarEmpresaView(ViewProtegidaADM, View):
                 request=request,
                 template_name="business/create/empresas.html",
                 context={"form": form},
+            )
+
+
+@method_decorator(csrf_protect, name="dispatch")
+class EditarEmpresaView(ViewProtegidaADM, View):
+    """
+    Página para edição de empresas existentes.
+
+    Métodos:
+        get(request, pk): Exibe o formulário preenchido com os dados da empresa.
+        post(request, pk): Lida com o envio do formulário de edição e atualiza os dados.
+    """
+
+    def get(self, request, pk):
+        """
+        Renderiza a página de edição de empresa com os dados existentes.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+            pk (int): O ID da empresa a ser editada.
+
+        Retorno:
+            HttpResponse: Página de edição de empresa renderizada.
+        """
+        try:
+            empresa = Empresa.objects.get(pk=pk)
+        except Empresa.DoesNotExist:
+            messages.error(
+                request,
+                "É preciso acessar esta página a partir do menu, selecionando uma empresa!",
+            )
+            return redirect(reverse("menu"))
+        endereco = empresa.endereco
+
+        form = EmpresaForm(
+            initial={
+                "nome": empresa.nome,
+                "logradouro": endereco.logradouro,
+                "numero": endereco.numero,
+                "complemento": endereco.complemento,
+                "bairro": endereco.bairro,
+                "cidade": endereco.cidade,
+                "estado": endereco.estado,
+                "cep": endereco.cep,
+            }
+        )
+
+        return render(
+            request=request,
+            template_name="business/create/empresas.html",
+            context={"form": form, "is_editing": True, "empresa_id": pk},
+        )
+
+    def post(self, request, pk):
+        """
+        Processa o formulário de edição e salva as alterações.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+            pk (int): O ID da empresa a ser editada.
+
+        Retorno:
+            HttpResponse: Redireciona ou renderiza novamente a página com erros.
+        """
+        empresa = Empresa.objects.get(pk=pk)
+        endereco = empresa.endereco
+
+        form = EmpresaForm(request.POST)
+
+        if form.is_valid():
+            endereco.logradouro = form.cleaned_data["logradouro"]
+            endereco.numero = form.cleaned_data["numero"]
+            endereco.complemento = form.cleaned_data["complemento"]
+            endereco.bairro = form.cleaned_data["bairro"]
+            endereco.cidade = form.cleaned_data["cidade"]
+            endereco.estado = form.cleaned_data["estado"]
+            endereco.cep = form.cleaned_data["cep"]
+            endereco.save()
+
+            empresa.nome = form.cleaned_data["nome"]
+            empresa.endereco = endereco
+            empresa.save()
+
+            messages.success(
+                request,
+                "Alterações realizadas com sucesso!",
+            )
+
+            return redirect("/menu/")
+        else:
+            return render(
+                request=request,
+                template_name="business/create/empresas.html",
+                context={"form": form, "is_editing": True, "empresa_id": pk},
             )
 
 
