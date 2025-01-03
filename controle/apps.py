@@ -77,7 +77,7 @@ def criar_funcionarios_padroes(sender, **kwargs):
         funcionario = Funcionario.objects.create(
             nome="Carlos Eduardo", email="carlos.eduardo@emp1.com", empresa=empresa1
         )
-        funcionario.criar_usuario("22222222222", "22222222222")
+        funcionario.criar_usuario("22222222222", "12345678")
 
         funcionario = Funcionario.objects.create(
             nome="Maria Lúcia", email="maria.lucia@emp1.com", empresa=empresa1
