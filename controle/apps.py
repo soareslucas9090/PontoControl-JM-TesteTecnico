@@ -1,7 +1,8 @@
+from datetime import date, time
+
 from django.apps import AppConfig
 from django.db import OperationalError
 from django.db.models.signals import post_migrate
-from datetime import time, date
 
 
 class ControleConfig(AppConfig):
@@ -9,7 +10,7 @@ class ControleConfig(AppConfig):
     name = "controle"
 
     def ready(self):
-        from .models import Empresa, Usuario, Funcionario, Ponto
+        from .models import Empresa, Endereco, Funcionario, Ponto, Usuario
 
         post_migrate.connect(criar_empresas_padroes, sender=self)
         post_migrate.connect(criar_usuario_padrao, sender=self)
@@ -19,15 +20,32 @@ class ControleConfig(AppConfig):
 
 def criar_empresas_padroes(sender, **kwargs):
     Empresa = sender.get_model("Empresa")
+    Endereco = sender.get_model("Endereco")
 
     try:
         Empresa.objects.create(
             nome="Dois Irmãos - Supermercados MATRIZ",
-            endereco="Rua Projetada X nº 400, Bairro Santo Antonio, Teresina-PI",
+            endereco=Endereco.objects.create(
+                logradouro="Rua Santo Antonio",
+                numero=331,
+                complemento="",
+                bairro="Centro",
+                cidade="Teresina",
+                estado="PI",
+                cep="64000000",
+            ),
         )
         Empresa.objects.create(
             nome="Dois Irmãos - Supermercados FL 01",
-            endereco="Rua Santa Ana nº 123, Bairro Tulipa, São Luiz-MA",
+            endereco=Endereco.objects.create(
+                logradouro="Rua Santa Ana",
+                numero=123,
+                complemento="",
+                bairro="Tulipa",
+                cidade="São Luiz",
+                estado="MA",
+                cep="65000000",
+            ),
         )
 
         print("Criação de Empresas bem sucedida!")

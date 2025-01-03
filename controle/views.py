@@ -12,7 +12,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_protect
 
 from .forms import EmpresaForm, FiltroPontoForm, FuncionarioForm, LoginForm, PontoForm
-from .models import Empresa, Funcionario, Ponto, Usuario
+from .models import Empresa, Endereco, Funcionario, Ponto, Usuario
 
 
 class ViewProtegidaADM(LoginRequiredMixin, UserPassesTestMixin):
@@ -287,7 +287,23 @@ class CriarEmpresaView(ViewProtegidaADM, View):
 
         if form.is_valid():
             nome = form.cleaned_data["nome"]
-            endereco = form.cleaned_data["endereco"]
+            logradouro = form.cleaned_data["logradouro"]
+            numero = form.cleaned_data["numero"]
+            complemento = form.cleaned_data["complemento"]
+            bairro = form.cleaned_data["bairro"]
+            cidade = form.cleaned_data["cidade"]
+            estado = form.cleaned_data["estado"]
+            cep = form.cleaned_data["cep"]
+
+            endereco = Endereco.objects.create(
+                logradouro=logradouro,
+                numero=numero,
+                complemento=complemento,
+                bairro=bairro,
+                cidade=cidade,
+                estado=estado,
+                cep=cep,
+            )
 
             try:
                 Empresa.objects.create(nome=nome, endereco=endereco)

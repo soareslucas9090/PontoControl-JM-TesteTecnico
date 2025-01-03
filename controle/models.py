@@ -12,17 +12,46 @@ from django.db.utils import IntegrityError
 from django.utils.timezone import now
 
 
+class Endereco(models.Model):
+    """
+    Modelo que representa um endereço.
+
+    Atributos:
+        logradouro (str): Logradouro do endereço.
+        numero (int): Número do endereço.
+        complemento (str): Complemento do endereço.
+        bairro (str): Bairro do endereço.
+        cidade (str): Cidade do endereço.
+        estado (str): Estado do endereço.
+        cep (str): CEP do endereço.
+    """
+
+    logradouro = models.CharField(max_length=255)
+    numero = models.IntegerField()
+    complemento = models.CharField(max_length=255)
+    bairro = models.CharField(max_length=255)
+    cidade = models.CharField(max_length=255)
+    complemento = models.CharField(max_length=255, null=True)
+    estado = models.CharField(max_length=255)
+    cep = models.CharField(max_length=8)
+
+    def __str__(self):
+        return f"{self.logradouro}, n° {self.numero}, {self.complemento}, {self.bairro}, {self.cidade}, {self.estado}, {self.cep}"
+
+
 class Empresa(models.Model):
     """
     Modelo que representa uma empresa.
 
     Atributos:
         nome (str): Nome da empresa.
-        endereco (str): Endereço da empresa.
+        endereco (Endereco): Endereço da empresa.
     """
 
     nome = models.CharField(max_length=255)
-    endereco = models.TextField()
+    endereco = models.ForeignKey(
+        Endereco, on_delete=models.DO_NOTHING, related_name="empresa"
+    )
 
     def __str__(self):
         """

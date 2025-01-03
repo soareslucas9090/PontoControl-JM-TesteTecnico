@@ -45,11 +45,74 @@ class EmpresaForm(forms.Form):
 
     Campos:
         nome (CharField): Nome da empresa.
-        endereco (CharField): Endereço da empresa.
+        logradouro (CharField): Rua da empresa.
+        numero (IntegerField): Número da empresa.
+        complemento (CharField): Complemento da empresa.
+        bairro (CharField): Bairro da empresa.
+        cidade (CharField): Cidade da empresa.
+        cep (CharField): CEP da empresa.
+        estado (CharField): Estado da empresa.
     """
 
+    estados = [
+        ("AC", "AC"),
+        ("AL", "AL"),
+        ("AP", "AP"),
+        ("AM", "AM"),
+        ("BA", "BA"),
+        ("CE", "CE"),
+        ("DF", "DF"),
+        ("ES", "ES"),
+        ("GO", "GO"),
+        ("MA", "MA"),
+        ("MT", "MT"),
+        ("MS", "MS"),
+        ("MG", "MG"),
+        ("PA", "PA"),
+        ("PB", "PB"),
+        ("PR", "PR"),
+        ("PE", "PE"),
+        ("PI", "PI"),
+        ("RJ", "RJ"),
+        ("RN", "RN"),
+        ("RS", "RS"),
+        ("RO", "RO"),
+        ("RR", "RR"),
+        ("SC", "SC"),
+        ("SP", "SP"),
+        ("SE", "SE"),
+        ("TO", "TO"),
+    ]
+
     nome = forms.CharField(widget=forms.TextInput(), label="Nome")
-    endereco = forms.CharField(widget=forms.Textarea, label="Endereço")
+    logradouro = forms.CharField(widget=forms.TextInput(), label="Rua")
+    numero = forms.IntegerField(label="Número")
+    complemento = forms.CharField(
+        widget=forms.TextInput(), label="Complemento", required=False
+    )
+    bairro = forms.CharField(widget=forms.TextInput(), label="Bairro")
+    cidade = forms.CharField(widget=forms.TextInput(), label="Cidade")
+    estado = forms.ChoiceField(label="Estado", choices=estados)
+    cep = forms.CharField(widget=forms.TextInput(), label="CEP")
+
+    def clean_cep(self):
+        """
+        Valida o CEP, garantindo que contenha apenas 8 dígitos numéricos.
+
+        Retorna:
+            str: CEP validado.
+
+        Lança:
+            ValidationError: Se o CEP não atender aos critérios.
+        """
+        cep = str(self.cleaned_data.get("cep"))
+
+        cep = re.sub("[^0-9]", "", cep)
+
+        if len(cep) != 8 or not cep.isnumeric():
+            raise ValidationError("O CPF deve conter 8 dígitos numéricos")
+
+        return cep
 
 
 class FuncionarioForm(forms.Form):
