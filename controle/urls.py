@@ -2,12 +2,13 @@ from django.urls import path
 
 from .views import (
     CriarEmpresaView,
-    CriarFuncionárioView,
+    CriarFuncionarioView,
     EditarEmpresaView,
     FiltrarPontoADMView,
     FiltrarPontoComumView,
     ListarFuncionariosView,
     LoginView,
+    EditarFuncionarioView,
     LogoutView,
     MenuView,
     RedirectView,
@@ -26,8 +27,13 @@ urlpatterns = [
     path("funcionarios/", ListarFuncionariosView.as_view(), name="funcionarios"),
     path(
         "criar/funcionarios/",
-        CriarFuncionárioView.as_view(),
+        CriarFuncionarioView.as_view(),
         name="criar-funcionarios",
+    ),
+    path(
+        "editar/funcionarios/<int:pk>/",
+        EditarFuncionarioView.as_view(),
+        name="editar-funcionario",
     ),
     path(
         "ponto/",

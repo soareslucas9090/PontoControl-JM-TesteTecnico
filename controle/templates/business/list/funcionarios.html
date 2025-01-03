@@ -44,7 +44,12 @@
               <td>{{ usuario.funcionario.email }}</td>
               <td>{{ usuario.cpf }}</td>
               <td>
-                <a class="btn btn-secondary ml-3 mr-3 mb-3" href="{% url 'filtrar-pontos' %}?funcionario={{ usuario.funcionario.id }}" role="button">Pontos</a>
+                <a class="btn btn-secondary" href="{% url 'filtrar-pontos' %}?funcionario={{ usuario.funcionario.id }}" role="button">Pontos</a>
+                <a class="btn btn-primary editar-elemento" href="{% url 'editar-funcionario' usuario.funcionario.id %}" role="button">
+                  <div class="main-div-btn">
+                    <img src="{% static 'img/edit.png' %}" alt="Editar" />
+                  </div>
+                </a>
               </td>
             </tr>
           {% endfor %}

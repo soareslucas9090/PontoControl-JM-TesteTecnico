@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import AnonymousUser
 from django.db.utils import IntegrityError
+from django.contrib.auth.hashers import make_password
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -469,7 +470,7 @@ class ListarFuncionariosView(ViewProtegidaADM, View):
 
 
 @method_decorator(csrf_protect, name="dispatch")
-class CriarFuncionárioView(ViewProtegidaADM, View):
+class CriarFuncionarioView(ViewProtegidaADM, View):
     """
     Página para criação de funcionários da empresa escolhida.
 
@@ -584,6 +585,169 @@ class CriarFuncionárioView(ViewProtegidaADM, View):
                 request=request,
                 template_name="business/create/funcionarios.html",
                 context={"empresa": empresa, "form": form},
+            )
+
+
+@method_decorator(csrf_protect, name="dispatch")
+class EditarFuncionarioView(ViewProtegidaADM, View):
+    """
+    Página para criação de funcionários da empresa escolhida.
+
+    Métodos:
+        get(request): Exibe o formulário de criação de funcionários.
+        post(request): Lida com o envio do formulário de criação de funcionários e efetiva as alterações.
+    """
+
+    def get(self, request, pk):
+        """
+        Renderiza a página de crição de funcionários com o formulário vazio.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: Página de criação de funcionários renderizada ou redirecionamento de volta
+            ao menu em caso de erros.
+        """
+        try:
+            funcionario = Funcionario.objects.get(pk=pk)
+        except Funcionario.DoesNotExist:
+            messages.error(
+                request,
+                "É preciso acessar esta página a partir do menu, selecionando uma empresa e depois um funcionário!",
+            )
+            return redirect(reverse("menu"))
+
+        form = FuncionarioForm(
+            initial={
+                "nome": funcionario.nome,
+                "cpf": funcionario.usuarios.all().first().cpf,
+                "email": funcionario.email,
+                "senha": funcionario.usuarios.all().first().password,
+            }
+        )
+
+        empresa_id = request.session.get("empresa_id", None)
+
+        if not empresa_id:
+            messages.error(
+                request,
+                "É preciso acessar esta página a partir do menu, selecionando uma empresa e depois um funcionário!",
+            )
+            return redirect(reverse("menu"))
+        else:
+            try:
+                empresa = Empresa.objects.get(pk=empresa_id)
+            except Empresa.DoesNotExist:
+                messages.error(request, "Empresa não encontrada!")
+                return redirect(reverse("menu"))
+
+        return render(
+            request=request,
+            template_name="business/create/funcionarios.html",
+            context={
+                "empresa": empresa,
+                "is_editing": True,
+                "funcionario_id": pk,
+                "form": form,
+            },
+        )
+
+    def post(self, request, pk):
+        """
+        Processa o formulário de criação de funcionários e exibe mensagem de sucesso ou erro ao usuário.
+
+        Parâmetros:
+            request (HttpRequest): O objeto da requisição HTTP.
+
+        Retorno:
+            HttpResponse: Redireciona ou renderiza novamente a página de crição de funcionários com erro.
+        """
+        form = FuncionarioForm(request.POST)
+
+        empresa_id = request.session.get("empresa_id", None)
+        empresa = Empresa.objects.get(pk=empresa_id)
+        funcionario = Funcionario.objects.get(pk=pk)
+
+        if form.is_valid():
+            nome = form.cleaned_data["nome"]
+            cpf = form.cleaned_data["cpf"]
+            email = form.cleaned_data["email"]
+            senha = form.cleaned_data["senha"]
+
+            try:
+                Funcionario.objects.exclude(pk=pk).get(email=email)
+
+                form.errors.clear()
+                form.add_error(
+                    "email",
+                    "Já há um email registrado com este nome e domínio.",
+                )
+
+                return render(
+                    request=request,
+                    template_name="business/create/funcionarios.html",
+                    context={
+                        "empresa": empresa,
+                        "is_editing": True,
+                        "funcionario_id": pk,
+                        "form": form,
+                    },
+                )
+            except Funcionario.DoesNotExist:
+                try:
+                    usuario = Usuario.objects.get(funcionario=funcionario)
+                    Usuario.objects.exclude(pk=usuario.pk).get(cpf=cpf)
+
+                    form.errors.clear()
+                    form.add_error(
+                        "cpf",
+                        f"Já existe um funcionário registrado com este CPF na empresa {usuario.funcionario.empresa}",
+                    )
+
+                    return render(
+                        request=request,
+                        template_name="business/create/funcionarios.html",
+                        context={
+                            "empresa": empresa,
+                            "is_editing": True,
+                            "funcionario_id": pk,
+                            "form": form,
+                        },
+                    )
+
+                except:
+                    funcionario.nome = nome
+                    funcionario.email = email
+                    funcionario.save()
+
+                    usuario = Usuario.objects.get(funcionario=funcionario)
+                    usuario.cpf = cpf
+
+                    if senha != usuario.password:
+                        password = make_password(senha)
+                        usuario.password = password
+
+                    usuario.save()
+
+            messages.success(
+                request,
+                f"Funcionário atualizado com sucesso!",
+            )
+
+            return redirect(reverse("funcionarios") + "?empresa=" + empresa_id)
+
+        else:
+            return render(
+                request=request,
+                template_name="business/create/funcionarios.html",
+                context={
+                    "empresa": empresa,
+                    "is_editing": True,
+                    "funcionario_id": pk,
+                    "is_editing": True,
+                    "form": form,
+                },
             )
 
 
