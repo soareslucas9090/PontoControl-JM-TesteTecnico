@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -251,7 +251,7 @@ class Ponto(models.Model):
             saida_datetime = datetime.combine(self.data, self.saida)
             delta = saida_datetime - entrada_datetime
         else:
-            delta = datetime.now() - entrada_datetime
+            delta = datetime.now() - entrada_datetime + timedelta(0, 10800, 0)
 
         horas, resto = divmod(delta.total_seconds(), 3600)
         minutos = resto // 60
